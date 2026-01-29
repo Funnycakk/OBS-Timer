@@ -1,11 +1,17 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_socketio import SocketIO, emit
 import threading
 import time
 import sys
+import os
 from datetime import timedelta
 
-app = Flask(__name__)
+# Get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, 
+            template_folder=os.path.join(script_dir, 'templates'),
+            static_folder=os.path.join(script_dir, 'static'))
 app.config['SECRET_KEY'] = 'timer-secret-key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -108,6 +114,16 @@ def index():
 @app.route('/settime')
 def settime_form():
     return render_template('settime.html')
+
+# Serve static files (CSS, JS, images, etc.)
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
+
+@app.route('/background/<path:filename>')
+def serve_background(filename):
+    background_dir = os.path.join(script_dir, 'background')
+    return send_from_directory(background_dir, filename)
 
 @app.route('/api/status')
 def status():
