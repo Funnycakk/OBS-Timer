@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OBS Timer</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -17,7 +18,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Clash Display', sans-serif;
             overflow: hidden;
         }
 
@@ -38,13 +39,25 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 360px;
-            height: 360px;
-            background: rgba(0, 0, 0, 0.5);
+            width: 380px;
+            height: 380px;
+            background: #3d4a54;
             border-radius: 50%;
-            backdrop-filter: blur(10px);
-            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3),
-                        0 0 40px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5),
+                        0 0 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .time-background::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: #1a1f26;
+            border-radius: 50%;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
         }
 
         .time-display {
@@ -53,13 +66,13 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 72px;
-            font-weight: bold;
+            font-weight: 500;
             color: #ffffff;
-            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8),
-                         0 0 40px rgba(0, 0, 0, 0.6);
-            letter-spacing: 4px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            letter-spacing: 2px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-variant-numeric: tabular-nums;
-            z-index: 10;
+            z-index: 20;
         }
 
         .status-indicator {
@@ -197,7 +210,7 @@
         }
 
         function drawCircle() {
-            const centerX = canvas.width / 2;
+            const centerX = canvas.width / 2
             const centerY = canvas.height / 2;
             const radius = 180;
             const lineWidth = 20;
