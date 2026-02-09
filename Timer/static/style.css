@@ -1,0 +1,258 @@
+/* ==========================================================================
+   OBS Timer — Stylesheet (Professional, minimal design)
+   Circular countdown timer for OBS Studio browser sources.
+   ========================================================================== */
+
+/* ---------- Reset & base ------------------------------------------------- */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --color-bg:        #0e1117;
+    --color-ring-bg:   #3d4a54;
+    --color-inner:     #1a1f26;
+    --color-text:      #ffffff;
+    --color-running:   #4caf50;
+    --color-paused:    #f44336;
+    --color-finished:  #f44336;
+    --color-warning:   #ff9800;
+    --color-progress:  #ffffff;
+    --color-btn:       #2196f3;
+    --color-btn-hover: #1976d2;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Transparent mode (for OBS overlay) */
+body.transparent {
+    background: transparent !important;
+}
+body.transparent .controls,
+body.transparent .keyboard-hint {
+    display: none !important;
+}
+
+/* ---------- Timer container ---------------------------------------------- */
+.timer-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    flex-shrink: 0;
+}
+
+#timerCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+/* Dark circular background behind the time digits */
+.time-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: var(--color-ring-bg);
+    box-shadow: inset 0 0 15px rgba(0,0,0,.4);
+}
+.time-bg::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: var(--color-inner);
+    box-shadow: inset 0 0 10px rgba(0,0,0,.3);
+}
+
+/* Digital time readout */
+.time-display {
+    position: absolute;
+    top: 44%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 72px;
+    font-weight: 500;
+    color: var(--color-text);
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+    z-index: 20;
+    transition: color 0.2s;
+}
+
+/* Status label */
+.status-indicator {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    color: var(--color-text);
+    text-shadow: 0 0 8px rgba(0,0,0,.6);
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    z-index: 20;
+    transition: color 0.2s;
+}
+.status-indicator.running  { color: var(--color-running); }
+.status-indicator.paused   { color: var(--color-paused); }
+.status-indicator.finished { color: var(--color-finished); }
+.status-indicator.warning  { color: var(--color-warning); }
+
+/* Minimal pulse effect when timer finishes */
+@keyframes subtle-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.7; }
+}
+.time-display.flash {
+    animation: subtle-pulse 0.8s ease-in-out infinite;
+    color: var(--color-finished);
+}
+
+/* Warning color when ≤10 s remaining */
+.time-display.warning {
+    color: var(--color-warning);
+}
+
+/* ---------- Control panel ------------------------------------------------ */
+.controls {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: rgba(0,0,0,.55);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+.controls-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background: var(--color-btn);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+    user-select: none;
+}
+.btn:hover {
+    background: var(--color-btn-hover);
+}
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn-start    { background: #4caf50; }
+.btn-start:hover { background: #388e3c; }
+
+.btn-stop     { background: #f44336; }
+.btn-stop:hover  { background: #c62828; }
+
+.btn-reset    { background: #9e9e9e; }
+.btn-reset:hover { background: #757575; }
+
+.btn-add      { background: #ff9800; }
+.btn-add:hover   { background: #e65100; }
+
+.btn-subtract { background: #ff9800; }
+.btn-subtract:hover { background: #e65100; }
+
+.btn-set      { background: #7c4dff; }
+.btn-set:hover   { background: #651fff; }
+
+.btn-preset {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    font-size: 12px;
+    padding: 6px 14px;
+}
+.btn-preset:hover {
+    background: rgba(255,255,255,.15);
+}
+
+/* ---------- Keyboard shortcut hint --------------------------------------- */
+.keyboard-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,.3);
+    text-align: center;
+}
+.keyboard-hint span {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: monospace;
+}
+
+/* ---------- Responsive: wide layout (800 × 200) for lower-thirds -------- */
+@media (min-aspect-ratio: 3/1) {
+    body {
+        flex-direction: row;
+    }
+    .timer-container {
+        width: 200px;
+        height: 200px;
+    }
+    #timerCanvas {
+        width: 200px;
+        height: 200px;
+    }
+    .time-bg {
+        width: 190px;
+        height: 190px;
+    }
+    .time-bg::before {
+        width: 150px;
+        height: 150px;
+    }
+    .time-display {
+        font-size: 36px;
+    }
+    .status-indicator {
+        font-size: 11px;
+        bottom: 48px;
+    }
+    .controls {
+        margin-top: 0;
+        margin-left: 20px;
+    }
+}

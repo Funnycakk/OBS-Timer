@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Timer</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Timer visualisation -->
+    <div class="timer-container" id="timerContainer">
+        <canvas id="timerCanvas" width="400" height="400"></canvas>
+        <div class="time-bg"></div>
+        <div class="time-display" id="timeDisplay">00:00</div>
+        <div class="status-indicator" id="statusIndicator">PAUSED</div>
+    </div>
+
+    <!-- Control panel (hidden when ?transparent=true) -->
+    <div class="controls" id="controls">
+        <div class="controls-row">
+            <button class="btn btn-start"    id="btnStart"    onclick="timerCmd('start')">▶ Start</button>
+            <button class="btn btn-stop"     id="btnStop"     onclick="timerCmd('stop')">⏸ Stop</button>
+            <button class="btn btn-reset"    id="btnReset"    onclick="timerCmd('reset')">⏹ Reset</button>
+        </div>
+        <div class="controls-row">
+            <button class="btn btn-add"      id="btnAdd"      onclick="timerCmd('addTime', {seconds:10})">+10 Sec</button>
+            <button class="btn btn-subtract" id="btnSubtract" onclick="timerCmd('subtractTime', {seconds:10})">−10 Sec</button>
+            <button class="btn btn-set"      id="btnSet"      onclick="promptSetTime()">⏱ Set Time</button>
+        </div>
+        <!-- Preset buttons -->
+        <div class="controls-row presets">
+            <button class="btn btn-preset" onclick="setPreset(1,0)">1 min</button>
+            <button class="btn btn-preset" onclick="setPreset(2,0)">2 min</button>
+            <button class="btn btn-preset" onclick="setPreset(5,0)">5 min</button>
+            <button class="btn btn-preset" onclick="setPreset(10,0)">10 min</button>
+            <button class="btn btn-preset" onclick="setPreset(15,0)">15 min</button>
+        </div>
+    </div>
+
+    <!-- Keyboard hint (hidden in transparent mode) -->
+    <div class="keyboard-hint" id="keyboardHint">
+        <span>Space</span> Start/Stop &nbsp;|&nbsp;
+        <span>R</span> Reset &nbsp;|&nbsp;
+        <span>↑</span> +10s &nbsp;|&nbsp;
+        <span>↓</span> −10s
+    </div>
+
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+            integrity="sha384-Gn5Ey9uZGpkMi2svMBuLvRAdXuCQLKBNUlNSCGz7hX5LSt4+YOT14aNpA8Lx/MG"
+            crossorigin="anonymous"></script>
+    <!-- Timer client logic -->
+    <script src="/static/timer.js"></script>
+</body>
+</html>

@@ -1,183 +1,320 @@
-# OBS Timer with Bitfocus Companion Integration
+# OBS Timer with Stream Deck / Bitfocus Companion Integration
 
-A professional countdown timer with circular progress visualization for OBS, controllable via Bitfocus Companion on Stream Deck.
+A production-ready countdown timer for **OBS Studio** with a circular canvas
+progress ring, real-time WebSocket sync, and a full HTTP REST API designed for
+**Bitfocus Companion** and **Stream Deck** control.
+
+![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue)
+![Flask](https://img.shields.io/badge/Flask-3.1-green)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-realtime-orange)
+
+---
 
 ## Features
 
-- ⏱️ **Countdown Timer** with hours:minutes:seconds display
-- 🎨 **Circular Progress Ring** with color-coded status
-- 🔴 **OBS Browser Source** ready (transparent background)
-- 🎮 **Stream Deck Control** via Bitfocus Companion
-- 🌐 **HTTP API** for remote control
-- 🔄 **Real-time Updates** via WebSocket
+| Feature | Description |
+|---------|-------------|
+| ⏱ Countdown Timer | Accurate server-side countdown (no drift) |
+| 🎨 Circular Progress Ring | HTML5 Canvas with color-coded status |
+| 🟢🟡🔴 Status Colors | Green (running), Orange (≤ 10 s warning), Red (finished/paused) |
+| 🔴 Finish Flash | Time display flashes red when timer reaches 00:00 |
+| 🌐 Multi-Client Sync | All connected browsers update simultaneously via WebSocket |
+| 🎮 Stream Deck Ready | HTTP REST API for Bitfocus Companion buttons |
+| 📡 WebSocket API | Socket.IO commands for advanced integrations |
+| 🖥 OBS Browser Source | Transparent background mode (`?transparent=true`) |
+| ⌨ Keyboard Shortcuts | Space (start/stop), R (reset), ↑↓ (±10 s) |
+| 🕐 Time Presets | 1, 2, 5, 10, 15 minute quick-set buttons |
+| 🔄 Auto-Reconnect | WebSocket reconnects automatically on disconnect |
+| 📐 Responsive | Works at 400×400 and 800×200 (lower-third) |
+
+---
 
 ## Installation
 
-1. Install Python dependencies:
+### 1. Install Python dependencies
+
 ```bash
+cd Timer
 pip install -r requirements.txt
 ```
 
-2. Run the timer server:
+### 2. Start the server
+
 ```bash
-python timer.py
+python app.py
 ```
 
-The server will start on `http://localhost:5000`
+The server starts on **http://localhost:5000**.
 
-## OBS Setup
+> **Windows shortcuts:**
+> - Double-click `start_timer.bat` to launch with a console window
+> - Run `start_timer_silent.vbs` to launch silently in the background
 
-1. In OBS, add a **Browser Source**
-2. Set URL to: `http://localhost:5000/?obs=true`
-3. Set Width: **800** and Height: **600** (or adjust as needed)
-4. ✅ Check "Shutdown source when not visible"
-5. ✅ Check "Refresh browser when scene becomes active"
+---
 
-The `?obs=true` parameter hides the control buttons.
+## OBS Browser Source Setup
 
-## Bitfocus Companion Setup
+1. In OBS, add a **Browser Source** to your scene.
+2. Configure:
 
-### HTTP Request Configuration
+| Setting | Value |
+|---------|-------|
+| **URL** | `http://localhost:5000/?transparent=true` |
+| **Width** | `400` |
+| **Height** | `400` |
+| **Custom CSS** | *(leave empty)* |
 
-Create buttons in Companion with these HTTP requests:
+3. ✅ Check **"Shutdown source when not visible"**
+4. ✅ Check **"Refresh browser when scene becomes active"**
+
+> The `?transparent=true` parameter hides controls and makes the background
+> transparent so only the timer ring + digits are visible.
+
+### Wide / Lower-Third Layout
+
+For a horizontal bar layout, set the browser source to **800 × 200** — the CSS
+will adapt automatically.
+
+---
+
+## Controlling the Timer
+
+### Option A — Web UI
+
+Open **http://localhost:5000** in any browser. You get six buttons, preset
+buttons, and keyboard shortcuts:
+
+| Key | Action |
+|-----|--------|
+| `Space` | Start / Stop (toggle) |
+| `R` | Reset to 00:00 |
+| `↑` | Add 10 seconds |
+| `↓` | Subtract 10 seconds |
+
+### Option B — Bitfocus Companion (Stream Deck)
+
+Add **Generic HTTP** actions for each button. All requests are `POST` unless
+noted.
 
 #### Start Timer
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/start`
+```
+POST http://localhost:5000/api/timer/start
+```
 
-#### Stop/Pause Timer
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/stop`
+#### Stop / Pause Timer
+```
+POST http://localhost:5000/api/timer/stop
+```
 
 #### Reset Timer
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/reset`
+```
+POST http://localhost:5000/api/timer/reset
+```
+
+#### Add 10 Seconds
+```
+POST http://localhost:5000/api/timer/add?seconds=10
+```
+
+#### Subtract 10 Seconds
+```
+POST http://localhost:5000/api/timer/subtract?seconds=10
+```
 
 #### Set Timer to 5 Minutes
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/set`
-- **Headers:** `Content-Type: application/json`
-- **Body:** `{"minutes": 5}`
+```
+POST http://localhost:5000/api/timer/set?minutes=5&seconds=0
+```
 
-#### Add 1 Minute
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/add`
-- **Headers:** `Content-Type: application/json`
-- **Body:** `{"seconds": 60}`
+#### Set Timer to 10 Minutes 30 Seconds
+```
+POST http://localhost:5000/api/timer/set?minutes=10&seconds=30
+```
 
-#### Remove 1 Minute
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/remove`
-- **Headers:** `Content-Type: application/json`
-- **Body:** `{"seconds": 60}`
+#### Get Current Status
+```
+GET http://localhost:5000/api/timer/status
+```
 
-#### Set Custom Time
-- **Method:** POST
-- **URL:** `http://localhost:5000/api/set`
-- **Headers:** `Content-Type: application/json`
-- **Body:** `{"hours": 0, "minutes": 10, "seconds": 30}`
-
-## API Reference
-
-### Endpoints
-
-All endpoints return JSON with status and timer information.
-
-#### GET /api/status
-Get current timer status
+**Response format (all endpoints):**
 ```json
 {
-  "remaining_seconds": 300,
-  "total_seconds": 300,
-  "initial_seconds": 300,
-  "running": false,
-  "time_display": "00:05:00",
-  "progress": 100
+  "success": true,
+  "status": "RUNNING",
+  "remainingSeconds": 125,
+  "initialSeconds": 300,
+  "display": "02:05",
+  "progress": 41.67
 }
 ```
 
-#### POST /api/start
-Start the timer
+#### Suggested Stream Deck Layout
 
-#### POST /api/stop
-Stop/pause the timer
-
-#### POST /api/reset
-Reset timer to initial time
-
-#### POST /api/set
-Set timer duration
-```json
-// Option 1: Seconds
-{"seconds": 300}
-
-// Option 2: Minutes
-{"minutes": 5}
-
-// Option 3: Full time
-{"hours": 1, "minutes": 30, "seconds": 0}
+```
+┌─────────┬─────────┬─────────┬─────────┐
+│  1 min  │  5 min  │ 10 min  │ 15 min  │
+├─────────┼─────────┼─────────┼─────────┤
+│  START  │  STOP   │  RESET  │ +1 min  │
+└─────────┴─────────┴─────────┴─────────┘
 ```
 
-#### POST /api/add
-Add time to timer
-```json
-{"seconds": 60}
+### Option C — WebSocket (Socket.IO)
+
+Connect to `http://localhost:5000` with a Socket.IO client and emit `command`
+events:
+
+```javascript
+const socket = io("http://localhost:5000");
+
+// Send commands
+socket.emit("command", { action: "start" });
+socket.emit("command", { action: "stop" });
+socket.emit("command", { action: "reset" });
+socket.emit("command", { action: "addTime",      seconds: 10 });
+socket.emit("command", { action: "subtractTime",  seconds: 10 });
+socket.emit("command", { action: "setTime",       minutes: 5, seconds: 30 });
+socket.emit("command", { action: "getStatus" });
+
+// Receive updates
+socket.on("timer_update", (data) => {
+    console.log(data);
+    // { status, remainingSeconds, initialSeconds, display, progress }
+});
 ```
 
-#### POST /api/remove
-Remove time from timer
-```json
-{"seconds": 30}
-```
+---
+
+## HTTP REST API Reference
+
+All endpoints return JSON with `{ "success": true/false, ... }`.
+
+### Primary Endpoints
+
+| Method | Endpoint | Parameters | Description |
+|--------|----------|------------|-------------|
+| `POST` | `/api/timer/start` | — | Start / resume countdown |
+| `POST` | `/api/timer/stop` | — | Pause countdown |
+| `POST` | `/api/timer/reset` | — | Reset to 00:00 |
+| `POST` | `/api/timer/add` | `?seconds=N` | Add N seconds |
+| `POST` | `/api/timer/subtract` | `?seconds=N` | Subtract N seconds |
+| `POST` | `/api/timer/set` | `?minutes=M&seconds=S` | Set countdown value |
+| `GET`  | `/api/timer/status` | — | Get current state |
+
+### Legacy Endpoints (backward compatible)
+
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/start` | — | Start |
+| `POST` | `/api/stop` | — | Stop |
+| `POST` | `/api/reset` | — | Reset |
+| `POST` | `/api/set` | `{"minutes":5}` or `{"seconds":300}` | Set time |
+| `POST` | `/api/add` | `{"seconds":60}` | Add time |
+| `POST` | `/api/remove` | `{"seconds":60}` | Remove time |
+| `GET`  | `/api/status` | — | Status |
+
+---
+
+## WebSocket (Socket.IO) API
+
+### Events emitted by client → server
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `command` | `{"action": "start"}` | Start timer |
+| `command` | `{"action": "stop"}` | Stop timer |
+| `command` | `{"action": "reset"}` | Reset timer |
+| `command` | `{"action": "addTime", "seconds": 10}` | Add time |
+| `command` | `{"action": "subtractTime", "seconds": 10}` | Subtract time |
+| `command` | `{"action": "setTime", "minutes": 5, "seconds": 30}` | Set time |
+| `command` | `{"action": "getStatus"}` | Request status |
+
+### Events emitted by server → client
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `timer_update` | `{status, remainingSeconds, initialSeconds, display, progress}` | State broadcast (every second while running, and on any change) |
+| `error` | `{"message": "..."}` | Error response |
+| `command_ok` | `{action, status, remainingSeconds, ...}` | Acknowledgement |
+
+---
 
 ## Visual Indicators
 
-The circular progress ring changes color based on remaining time:
+| Condition | Ring Color | Text Color |
+|-----------|-----------|------------|
+| Running (> 10 s) | 🟢 Green | White |
+| Running (≤ 10 s) | 🟡 Orange | Orange |
+| Paused | ⚪ White | Red label |
+| Finished (00:00) | 🔴 Red | Red (flashing) |
 
-- 🟢 **Green** (>50%): Plenty of time
-- 🟡 **Orange** (20-50%): Time running low
-- 🔴 **Red** (<20%): Almost finished
+---
 
-## Customization
+## File Structure
 
-### Change Initial Time
-Edit `timer.py` line 207:
-```python
-timer.set_time(300)  # 300 seconds = 5 minutes
+```
+Timer/
+├── app.py                  # Flask server + Socket.IO + timer engine
+├── requirements.txt        # Python dependencies
+├── start_timer.bat         # Windows launcher (console)
+├── start_timer_silent.vbs  # Windows launcher (silent)
+├── set_timer_popup.bat     # Legacy popup launcher
+├── set_timer_window.py     # Tkinter popup (legacy)
+├── obs_timer_script.py     # OBS Scripts integration
+├── timer.py                # Legacy server (kept for compatibility)
+├── static/
+│   ├── style.css           # Timer styling & responsive layout
+│   └── timer.js            # Socket.IO client & canvas rendering
+├── templates/
+│   ├── index.html          # Main timer page (new)
+│   ├── timer.html          # Legacy timer page
+│   └── settime.html        # Set-time form page
+└── certs/                  # SSL certificates (optional)
 ```
 
-### Change Colors
-Edit `templates/timer.html` in the gradient section (around line 180)
+---
 
-### Change Size
-Modify the canvas size and container dimensions in the HTML
+## Customisation
+
+### Change Default Port
+
+Edit the last line of `app.py`:
+
+```python
+socketio.run(app, host="0.0.0.0", port=8080, debug=False, allow_unsafe_werkzeug=True)
+```
+
+### Network Access
+
+The server binds to `0.0.0.0`, so any device on your LAN can reach it at
+`http://<your-ip>:5000/`.
+
+### Change Colors
+
+Edit CSS custom properties at the top of `static/style.css`:
+
+```css
+:root {
+    --color-running:  #4caf50;
+    --color-warning:  #ff9800;
+    --color-finished: #f44336;
+}
+```
+
+---
 
 ## Troubleshooting
 
-**Timer not visible in OBS?**
-- Make sure the server is running
-- Check the URL is correct
-- Try refreshing the browser source
+| Problem | Solution |
+|---------|----------|
+| **Timer not visible in OBS** | Make sure `app.py` is running. Refresh the Browser Source. |
+| **Companion buttons not working** | Verify the server is on port 5000. Check firewall. |
+| **WebSocket disconnects** | The client auto-reconnects. Check network stability. |
+| **Timer drifts over time** | Timer uses `time.monotonic()` wall-clock deltas — no drift. |
+| **Port 5000 already in use** | Change the port in `app.py` (see above). |
+| **Old `timer.py` still running** | Kill it first — only one server can use port 5000. |
+| **Controls visible in OBS** | Add `?transparent=true` to the URL. |
 
-**Companion buttons not working?**
-- Verify the server is running on port 5000
-- Check firewall settings
-- Ensure Content-Type header is set for POST requests with body
-
-**Timer jumps or skips?**
-- This is normal WebSocket behavior
-- The timer updates every second on the server
-
-## Advanced Usage
-
-### Running on Different Port
-```python
-socketio.run(app, host='0.0.0.0', port=8080, debug=False)
-```
-
-### Running on Network
-The server binds to `0.0.0.0`, so it's accessible from other devices on your network.
-Use your computer's IP address: `http://192.168.1.XXX:5000/`
+---
 
 ## License
 
